@@ -1,0 +1,16 @@
+services:
+  jaeger:
+    image: image:latest
+    ports:
+      - "8080:8080" # web
+      - "9080:9080" # api
+      #- "4317:4317"
+    environment:
+      - LOG_LEVEL=debug
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
+    name: my-network
