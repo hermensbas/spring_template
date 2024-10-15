@@ -1,0 +1,61 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <interactiveMode/>
+    <usePluginRegistry/>
+    <offline/>
+
+    <servers>
+        <server>
+            <id>project-releases</id>
+            <username>${NEXUS_ROBOT_NAME}</username>
+            <password>${NEXUS_ROBOT_SECRET}</password>
+        </server>
+        <server>
+            <id>project-snapshots</id>
+            <username>${NEXUS_ROBOT_NAME}</username>
+            <password>${NEXUS_ROBOT_SECRET}</password>
+        </server>
+    </servers>
+
+    <mirrors>
+        <mirror>
+            <id>nexus</id>
+            <mirrorOf>central</mirrorOf>
+            <url>https://nexus-url/repository/maven-public/</url>
+        </mirror>
+    </mirrors>
+
+    <profiles>
+        <profile>
+            <id>nexus</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>project-releases</id>
+                    <url>https://nexus-url/repository/project-releases/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>project-snapshots</id>
+                    <url>https://nexus-url/repository/project-snapshots/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+    <activeProfiles/>
+
+</settings>

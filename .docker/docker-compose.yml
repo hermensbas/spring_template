@@ -1,0 +1,19 @@
+services:
+  app-template:
+    image: "services/app-template:latest"
+    restart: "always"
+    ports:
+      - "8080:8080" #web
+      - "9080:9080" #actuator
+    environment:
+      - "PROPERTIES_CONFIG_ZIP=/mnt/config/config-local.zip"
+      - "JASYPT_PWD=masterpassword"
+    volumes:
+      - "./../app-template/target/config-local.zip:/mnt/config/config-local.zip"
+    networks:
+      - "app-services-network"
+
+networks:
+  app-services-network:
+    driver: "bridge"
+    name: "app-services-network"
