@@ -24,6 +24,16 @@
         </dependency>
         <dependency>
             <groupId>nl.spring.template.project</groupId>
+            <artifactId>app-opera</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>nl.spring.template.project</groupId>
+            <artifactId>app-afwijk</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>nl.spring.template.project</groupId>
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>

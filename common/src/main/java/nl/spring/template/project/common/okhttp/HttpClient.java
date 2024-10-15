@@ -16,3 +16,4 @@ public class HttpClient<T extends HttpClientProperties> extends OkHttpClient {
         return this.properties.getBaseUrl() + subPath;
     }
 }
+

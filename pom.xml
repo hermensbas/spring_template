@@ -17,6 +17,8 @@
         <module>app-template</module>
         <module>common</module>
         <module>test-aggregator</module>
+        <module>app-afwijk</module>
+        <module>app-opera</module>
     </modules>
 
     <properties>
