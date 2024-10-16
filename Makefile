@@ -1,13 +1,16 @@
-.PHONY: help compile \
+.PHONY: \
+help compile \
 test-unit test-int test-all \
 versions-show versions-update \
-docker-up docker-down \
+docker-login docker-up docker-down docker-data\
 build-template build-template-docker run-template kill-template \
 build-opera build-opera-docker run-opera kill-opera \
-build-afwijk build-afwijk-docker run-afwijk kill-afwijk \
-
+build-afwijk build-afwijk-docker run-afwijk kill-afwijk
 CURRENT_DIR = $(realpath .)
 
+#####################################################################################################
+########## help
+#####################################################################################################
 help:
 	@echo "Available targets for:"
 	@echo "########################################################################################"
@@ -22,8 +25,10 @@ help:
 	@echo "  - versions-update\t\tUpdate POM versions"
 	@echo "  - deps\t\t\tShows dependency tree"
 	@echo "---------------------------------------------------------------[docker-compose]---------"
+	@echo "  - docker-login\t\tLogin harbor username/cliSecret"
 	@echo "  - docker-up\t\t\tRuns docker"
 	@echo "  - docker-down\t\t\tStops docker"
+	@echo "  - docker-data\t\t\tRuns docker configures and fills the databases"
 	@echo "---------------------------------------------------------------[template]---------------"
 	@echo "  - build-template\t\tBuilds template app"
 	@echo "  - build-template-docker\tBuilds docker template app"
@@ -41,7 +46,10 @@ help:
 	@echo "  - kill-afwijk\t\t\tKills app-afwijk process"
 	@echo "########################################################################################"
 
-# compiles the code
+
+#####################################################################################################
+########## compile
+#####################################################################################################
 compile:
 	@echo "########################################################################################"
 	@echo "## mvn clean compile"
@@ -49,6 +57,10 @@ compile:
 	@echo "########################################################################################"
 	@mvn clean compile 
 
+
+#####################################################################################################
+########## help
+#####################################################################################################
 # tests units the code
 test:
 	@echo "########################################################################################"
@@ -79,6 +91,10 @@ test-all:
 	@echo -n "## CODE_COVERAGE_PERCENTAGE: "
 	@cat test-aggregator/target/site/jacoco-aggregate/index.html | grep -o "Total[^%]*%" | sed "s/Total<.*>\([0-9]*\)%/\1/"
 
+
+#####################################################################################################
+########## maven
+#####################################################################################################
 versions-show:
 	@echo "########################################################################################"
 	@echo "## mvn versions:display-dependency-updates -Dmaven.plugin.validation=VERBOSE"
@@ -107,6 +123,17 @@ deps:
 	@echo "########################################################################################"
 	@mvn dependency:tree
 
+
+#####################################################################################################
+########## docker
+#####################################################################################################
+docker-login:
+	@echo "########################################################################################"
+	@echo "## docker login harbor-gn2.cicd.s15m.nl"
+	@echo "########################################################################################"
+	@echo "########################################################################################"
+	@docker login harbor-gn2.cicd.s15m.nl
+
 docker-build: build-template-docker build-opera-docker build-afwijk-docker
 
 docker-up: docker-build
@@ -123,9 +150,17 @@ docker-down:
 	@echo "########################################################################################"
 	@docker compose -f .docker/docker-compose.yml -p myapp down -v
 
+docker-data:
+	@echo "########################################################################################"
+	@echo "## docker compose -f .docker/docker-compose.yml -p myapp --profile data-filler up"
+	@echo "########################################################################################"
+	@echo "########################################################################################"
+	@docker compose -f .docker/docker-compose.yml -p myapp --profile data-filler up
 
 
-
+#####################################################################################################
+########## app-template
+#####################################################################################################
 build-template:
 	@echo "########################################################################################"
 	@echo "## mvn -pl app-template -am clean -Dskip.unit.tests=true package"
@@ -152,8 +187,9 @@ kill-template:
 	@sudo kill -9 $(sudo lsof -t -i:9080) > /dev/null 2>&1
 
 
-
-
+#####################################################################################################
+########## app-opera
+#####################################################################################################
 build-opera:
 	@echo "########################################################################################"
 	@echo "## mvn -pl app-opera -am clean -Dskip.unit.tests=true package"
@@ -180,8 +216,9 @@ kill-opera:
 	@sudo kill -9 $(sudo lsof -t -i:9081) > /dev/null 2>&1
 
 
-
-
+#####################################################################################################
+########## app-afwijk
+#####################################################################################################
 build-afwijk:
 	@echo "########################################################################################"
 	@echo "## mvn -pl app-afwijk -am clean -Dskip.unit.tests=true package"

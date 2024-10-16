@@ -23,6 +23,7 @@ public class WebClientConfig extends TracerClientAbstractConfig {
         final OzonProperties properties) {
 
         final var connectionPool = new ConnectionPool(5, 5, TimeUnit.MINUTES);
+
         final var client = tracerBuilder
             .callTimeout(5, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -34,6 +35,7 @@ public class WebClientConfig extends TracerClientAbstractConfig {
         return new HttpClient<>(properties, client);
 
     }
+
 }
 
 

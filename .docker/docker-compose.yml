@@ -1,48 +1,216 @@
 services:
 
+  #####################################################################################################
+  ########## app-template
+  #####################################################################################################
   app-template:
+    platform: "linux/amd64"
     image: "services/app-template:latest"
-    restart: "always"
+    restart: "no"
+    hostname: "koop-lvbb.templata"
+    container_name: "koop-lvbb.template"
+    depends_on:
+      - marklogic
+      - mocks
     ports:
       - "8080:8080" #web
       - "9080:9080" #actuator
     environment:
       - "PROPERTIES_CONFIG_ZIP=/mnt/config/config-local.zip"
       - "JASYPT_PWD=masterpassword"
+      - "TZ=Europe/Amsterdam"
     volumes:
       - "./../app-template/target/config-local.zip:/mnt/config/config-local.zip"
     networks:
       - "app-services-network"
 
+
+  ####################################################################################################
+  ########## app-opera
+  #####################################################################################################
   app-opera:
+    platform: "linux/amd64"
     image: "services/app-opera:latest"
-    restart: "always"
+    restart: "no"
+    hostname: "koop-lvbb.opera"
+    container_name: "koop-lvbb.opera"
+    depends_on:
+      - marklogic
+      - mocks
     ports:
       - "8081:8081" #web
       - "9081:9081" #actuator
     environment:
       - "PROPERTIES_CONFIG_ZIP=/mnt/config/config-local.zip"
       - "JASYPT_PWD=masterpassword"
+      - "TZ=Europe/Amsterdam"
     volumes:
       - "./../app-opera/target/config-local.zip:/mnt/config/config-local.zip"
     networks:
       - "app-services-network"
 
+
+  ####################################################################################################
+  ########## app-afwijk
+  #####################################################################################################
   app-afwijk:
+    platform: "linux/amd64"
     image: "services/app-afwijk:latest"
-    restart: "always"
+    restart: "no"
+    hostname: "koop-lvbb.opera"
+    container_name: "koop-lvbb.afwijk"
+    depends_on:
+      - marklogic
+      - mocks
     ports:
       - "8082:8082" #web
       - "9082:9082" #actuator
     environment:
       - "PROPERTIES_CONFIG_ZIP=/mnt/config/config-local.zip"
       - "JASYPT_PWD=masterpassword"
+      - "TZ=Europe/Amsterdam"
     volumes:
       - "./../app-afwijk/target/config-local.zip:/mnt/config/config-local.zip"
     networks:
       - "app-services-network"
 
+
+  #####################################################################################################
+  ########## mocks
+  #####################################################################################################
+  mocks:
+    platform: "linux/amd64"
+    image: "harbor-gn2.cicd.s15m.nl/koop-lvbb/lvbb-mocks:latest"
+    restart: "no"
+    hostname: "koop-lvbb.mocks"
+    container_name: "koop-lvbb.mocks"
+    depends_on:
+      - marklogic
+    ports:
+      - "7001:7001"
+    networks:
+      - "app-services-network"
+    environment:
+      - "AUTHORIZATION=ENC(ZWmg1Gp4/q5pRPIkqfJX6D9mCDvR/R2/b+lvkyw+sfk=)"
+      - "ENABLED_OW_VALIDATIE_ZIP=false"
+      - "DEFAULT_STATE_PUP=ACCEPT_EVERYTHING"
+      - "PUP_INBOX_FOLDER=/mnt/pup/proces/inbox"
+      - "PUP_INBOX_PROCESSED_FOLDER=/mnt/pup/proces/inbox/processed"
+      - "PUP_INBOX_BALLENBAK_FOLDER=/mnt/pup/proces/inbox/ballenbak"
+      - "PUP_INBOX_ERROR_FOLDER=/mnt/pup/proces/inbox/error"
+      - "PUP_OUTBOX_FOLDER=/mnt/pup/proces/outbox"
+      - "LOGO_INTERNAL_HOSTNAME=http://koop.mocks:7001"
+      - "TRANSFORMATION_SERVICE_PATH=/mnt/transformatie"
+      - "TZ=Europe/Amsterdam"
+    volumes:
+      - "pup_werk:/mnt/pup/werk"
+      - "pup_proces:/mnt/pup/proces"
+      - "transformatie_data:/mnt/transformatie"
+
+
+  #####################################################################################################
+  ########## marklogic-deployer
+  #####################################################################################################
+  marklogic-deployer:
+    platform: "linux/amd64"
+    image: "harbor-gn2.cicd.s15m.nl/koop-lvbb/lvbb-cds:latest"
+    command: [ "/bin/sh", "./deploy.sh" ]
+    restart: "no"
+    hostname: "koop-lvbb.ml-deployer"
+    container_name: "koop-lvbb.ml-deployer"
+    profiles:
+      - data-filler
+    depends_on:
+      - marklogic
+    environment:
+      - "CREDENTIALS_PWD=admin"
+      - "TZ=Europe/Amsterdam"
+    volumes:
+      - "ml_data:/var/opt/MarkLogic"
+      - "ml_backups:/data/backups:delegated"
+      - "/tmp/ml-deployer/logs:/var/opt/MarkLogic/Logs:delegated"
+      - "/tmp/ml-deployer/debug:/data/debug"
+    networks:
+      - "app-services-network"
+
+
+  #####################################################################################################
+  ########## marklogic-database
+  #####################################################################################################
+  marklogic:
+    platform: "linux/amd64"
+    image: "harbor-gn2.cicd.s15m.nl/docker-hub/progressofficial/marklogic-db:11.3.0-ubi-rootless"
+    restart: "no"
+    ports:
+      - "7997-7999:7997-7999"
+      - "8000-8002:8000-8002"
+      - "8040-8042:8040-8042"
+    hostname: "koop-lvbb.ml"
+    container_name: "koop-lvbb.ml"
+    environment:
+      - "MARKLOGIC_INIT=true"
+      - "MARKLOGIC_ADMIN_USERNAME_FILE=admin"
+      - "MARKLOGIC_ADMIN_PASSWORD_FILE=admin"
+      - "MARKLOGIC_WALLET_PASSWORD_FILE=admin"
+      - "TZ=Europe/Amsterdam"
+    volumes:
+      - "ml_data:/var/opt/MarkLogic"
+      - "ml_backups:/data/backups:delegated"
+      - "/tmp/ml/logs/cds:/var/opt/MarkLogic/Logs:delegated"
+      - "/tmp/ml/debug:/data/debug"
+    networks:
+      - "app-services-network"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "16G"
+
+
+  #####################################################################################################
+  ########## activemq
+  ## https://activemq.apache.org/components/artemis/documentation/latest/docker.html#official-images
+  #####################################################################################################
+  activemq:
+    platform: "linux/amd64"
+    image: "harbor-gn2.cicd.s15m.nl/docker-hub/apache/activemq-artemis:2.37.0-alpine"
+    restart: "always"
+    hostname: "koop-lvbb.queue"
+    container_name: "koop-lvbb.queue"
+    ports:
+      - "8161:8161"
+      - "61616:61616"
+    environment:
+      - "ARTEMIS_USER=admin"
+      - "ARTEMIS_PASSWORD=admin"
+      - "TZ=Europe/Amsterdam"
+    networks:
+      - "app-services-network"
+
+
+#####################################################################################################
+########## volumes
+#####################################################################################################
+volumes:
+  ml_data:
+  ml_backups:
+  pup_werk:
+  pup_proces:
+  transformatie_data:
+
+
+#####################################################################################################
+########## network
+#####################################################################################################
 networks:
   app-services-network:
     driver: "bridge"
     name: "app-services-network"
+
+# if the above gives issue, try the below
+#networks:
+#  external_net: {}
+#  internal_net:
+#    internal: true
+#    driver_opts:
+#      com.docker.network.bridge.enable_icc: "true"
