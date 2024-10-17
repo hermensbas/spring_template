@@ -2,7 +2,7 @@
 help compile \
 test-unit test-int test-all \
 versions-show versions-update \
-docker-login docker-up docker-down docker-data\
+docker-login docker-up docker-down docker-prune docker-import \
 build-template build-template-docker run-template kill-template \
 build-opera build-opera-docker run-opera kill-opera \
 build-afwijk build-afwijk-docker run-afwijk kill-afwijk
@@ -28,7 +28,8 @@ help:
 	@echo "  - docker-login\t\tLogin harbor username/cliSecret"
 	@echo "  - docker-up\t\t\tRuns docker"
 	@echo "  - docker-down\t\t\tStops docker"
-	@echo "  - docker-data\t\t\tRuns docker configures and fills the databases"
+	@echo "  - docker-prune\t\tClear docker setup"
+	@echo "  - docker-import\t\tRuns docker configures and imports data"
 	@echo "---------------------------------------------------------------[template]---------------"
 	@echo "  - build-template\t\tBuilds template app"
 	@echo "  - build-template-docker\tBuilds docker template app"
@@ -136,26 +137,38 @@ docker-login:
 
 docker-build: build-template-docker build-opera-docker build-afwijk-docker
 
-docker-up: docker-build
+docker-up: #docker-build
 	@echo "########################################################################################"
 	@echo "## docker compose -f .docker/docker-compose.yml -p myapp up -d --remove-orphans"
 	@echo "########################################################################################"
 	@echo "########################################################################################"
-	@docker compose -f .docker/docker-compose.yml -p myapp up -d --remove-orphans
+	@docker compose -f .docker/docker-compose.yml --profile "default" up -d --remove-orphans
 
 docker-down:
 	@echo "########################################################################################"
 	@echo "## docker compose -f .docker/docker-compose.yml -p myapp down -v"
 	@echo "########################################################################################"
 	@echo "########################################################################################"
-	@docker compose -f .docker/docker-compose.yml -p myapp down -v
+	@docker compose -f .docker/docker-compose.yml --profile "default" down -v
 
-docker-data:
+docker-prune:
 	@echo "########################################################################################"
-	@echo "## docker compose -f .docker/docker-compose.yml -p myapp --profile data-filler up"
+	@echo "## docker compose -f .docker/docker-compose.yml -p myapp down -v"
+	@echo "## docker system prune"
 	@echo "########################################################################################"
 	@echo "########################################################################################"
-	@docker compose -f .docker/docker-compose.yml -p myapp --profile data-filler up
+	@docker compose -f .docker/docker-compose.yml down -v
+	#@docker kill $(docker ps -q)
+	#docker volume rm $(docker volume ls -q --filter dangling=true)
+	@docker system prune
+
+docker-import:
+	@echo "########################################################################################"
+	@echo "## docker compose -f .docker/docker-compose.yml -p myapp --profile data-import up"
+	@echo "########################################################################################"
+	@echo "########################################################################################"
+	@.docker/config/build-config.sh
+	@docker compose -f .docker/docker-compose.yml --profile "data-import" up
 
 
 #####################################################################################################

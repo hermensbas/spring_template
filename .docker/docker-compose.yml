@@ -1,3 +1,24 @@
+#####################################################################################################
+########## volumes
+#####################################################################################################
+volumes:
+  cds_data:
+  cds_backups:
+  cds_export:
+  pup_werk:
+  pup_proces:
+  transformatie_data:
+
+#####################################################################################################
+########## network
+#####################################################################################################
+networks:
+  external_net: { }
+  internal_net:
+    internal: true
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+
 services:
 
   #####################################################################################################
@@ -7,8 +28,10 @@ services:
     platform: "linux/amd64"
     image: "services/app-template:latest"
     restart: "no"
-    hostname: "koop-lvbb.templata"
+    hostname: "koop-lvbb.template"
     container_name: "koop-lvbb.template"
+    profiles:
+      - "default"
     depends_on:
       - marklogic
       - mocks
@@ -22,7 +45,8 @@ services:
     volumes:
       - "./../app-template/target/config-local.zip:/mnt/config/config-local.zip"
     networks:
-      - "app-services-network"
+      - "external_net"
+      - "internal_net"
 
 
   ####################################################################################################
@@ -34,6 +58,8 @@ services:
     restart: "no"
     hostname: "koop-lvbb.opera"
     container_name: "koop-lvbb.opera"
+    profiles:
+      - "default"
     depends_on:
       - marklogic
       - mocks
@@ -47,7 +73,8 @@ services:
     volumes:
       - "./../app-opera/target/config-local.zip:/mnt/config/config-local.zip"
     networks:
-      - "app-services-network"
+      - "external_net"
+      - "internal_net"
 
 
   ####################################################################################################
@@ -59,6 +86,8 @@ services:
     restart: "no"
     hostname: "koop-lvbb.opera"
     container_name: "koop-lvbb.afwijk"
+    profiles:
+      - "default"
     depends_on:
       - marklogic
       - mocks
@@ -72,7 +101,8 @@ services:
     volumes:
       - "./../app-afwijk/target/config-local.zip:/mnt/config/config-local.zip"
     networks:
-      - "app-services-network"
+      - "external_net"
+      - "internal_net"
 
 
   #####################################################################################################
@@ -84,12 +114,15 @@ services:
     restart: "no"
     hostname: "koop-lvbb.mocks"
     container_name: "koop-lvbb.mocks"
+    profiles:
+      - "default"
     depends_on:
       - marklogic
     ports:
       - "7001:7001"
     networks:
-      - "app-services-network"
+      - "external_net"
+      - "internal_net"
     environment:
       - "AUTHORIZATION=ENC(ZWmg1Gp4/q5pRPIkqfJX6D9mCDvR/R2/b+lvkyw+sfk=)"
       - "ENABLED_OW_VALIDATIE_ZIP=false"
@@ -116,22 +149,20 @@ services:
     image: "harbor-gn2.cicd.s15m.nl/koop-lvbb/lvbb-cds:latest"
     command: [ "/bin/sh", "./deploy.sh" ]
     restart: "no"
-    hostname: "koop-lvbb.ml-deployer"
-    container_name: "koop-lvbb.ml-deployer"
+    hostname: "koop-lvbb.cds-deployer"
+    container_name: "koop-lvbb.cds-deployer"
     profiles:
-      - data-filler
-    depends_on:
-      - marklogic
+      - "data-import"
     environment:
-      - "CREDENTIALS_PWD=admin"
+      - "CREDENTIALS_PWD=masterpassword"
       - "TZ=Europe/Amsterdam"
+      - "TFU=Europe/Amsterdam"
     volumes:
-      - "ml_data:/var/opt/MarkLogic"
-      - "ml_backups:/data/backups:delegated"
-      - "/tmp/ml-deployer/logs:/var/opt/MarkLogic/Logs:delegated"
-      - "/tmp/ml-deployer/debug:/data/debug"
+      - "./config/cds/config-cds.zip:/mnt/config/config-cds.zip"
+      - "./config/cds/creds-cds.zip:/mnt/creds/creds-cds.zip"
     networks:
-      - "app-services-network"
+      - "external_net"
+      - "internal_net"
 
 
   #####################################################################################################
@@ -139,27 +170,33 @@ services:
   #####################################################################################################
   marklogic:
     platform: "linux/amd64"
-    image: "harbor-gn2.cicd.s15m.nl/docker-hub/progressofficial/marklogic-db:11.3.0-ubi-rootless"
-    restart: "no"
+    image: "harbor-gn2.cicd.s15m.nl/docker-hub/progressofficial/marklogic-db:11.3.0-ubi"
+    restart: "always"
+    hostname: "koop-lvbb.cds"
+    container_name: "koop-lvbb.cds"
+    profiles:
+      - "default"
+    #extra_hosts:
+    #  - "host.docker.internal: host-gateway"
     ports:
       - "7997-7999:7997-7999"
       - "8000-8002:8000-8002"
       - "8040-8042:8040-8042"
-    hostname: "koop-lvbb.ml"
-    container_name: "koop-lvbb.ml"
     environment:
       - "MARKLOGIC_INIT=true"
-      - "MARKLOGIC_ADMIN_USERNAME_FILE=admin"
-      - "MARKLOGIC_ADMIN_PASSWORD_FILE=admin"
-      - "MARKLOGIC_WALLET_PASSWORD_FILE=admin"
+      - "MARKLOGIC_ADMIN_USERNAME=admin"
+      - "MARKLOGIC_ADMIN_PASSWORD=admin"
+      - "MARKLOGIC_WALLET_PASSWORD=admin"
       - "TZ=Europe/Amsterdam"
     volumes:
-      - "ml_data:/var/opt/MarkLogic"
-      - "ml_backups:/data/backups:delegated"
-      - "/tmp/ml/logs/cds:/var/opt/MarkLogic/Logs:delegated"
-      - "/tmp/ml/debug:/data/debug"
+      - "cds_data:/var/opt/MarkLogic"
+      #- "cds_export:/export/data/MarkLogic"
+      - "cds_backups:/export/data/backups:delegated"
+      - "/tmp/cds/logs:/var/opt/MarkLogic/Logs:delegated"
+      - "/tmp/cds/debug:/data/debug"
     networks:
-      - "app-services-network"
+      - "external_net"
+      - "internal_net"
     deploy:
       resources:
         limits:
@@ -177,6 +214,8 @@ services:
     restart: "always"
     hostname: "koop-lvbb.queue"
     container_name: "koop-lvbb.queue"
+    profiles:
+      - "default"
     ports:
       - "8161:8161"
       - "61616:61616"
@@ -185,32 +224,5 @@ services:
       - "ARTEMIS_PASSWORD=admin"
       - "TZ=Europe/Amsterdam"
     networks:
-      - "app-services-network"
-
-
-#####################################################################################################
-########## volumes
-#####################################################################################################
-volumes:
-  ml_data:
-  ml_backups:
-  pup_werk:
-  pup_proces:
-  transformatie_data:
-
-
-#####################################################################################################
-########## network
-#####################################################################################################
-networks:
-  app-services-network:
-    driver: "bridge"
-    name: "app-services-network"
-
-# if the above gives issue, try the below
-#networks:
-#  external_net: {}
-#  internal_net:
-#    internal: true
-#    driver_opts:
-#      com.docker.network.bridge.enable_icc: "true"
+      - "external_net"
+      - "internal_net"
