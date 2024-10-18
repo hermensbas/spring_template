@@ -19,7 +19,7 @@ management:
   endpoints:
     web:
       exposure:
-        #include: [ "health" ]
+        #include: [ "health","prometheus", "metrics", "info", "logfile"]
         include: "*"
   health:
     livenessState:

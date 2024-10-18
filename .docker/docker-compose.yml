@@ -4,7 +4,6 @@
 volumes:
   cds_data:
   cds_backups:
-  cds_export:
   pup_werk:
   pup_proces:
   transformatie_data:
@@ -156,7 +155,6 @@ services:
     environment:
       - "CREDENTIALS_PWD=masterpassword"
       - "TZ=Europe/Amsterdam"
-      - "TFU=Europe/Amsterdam"
     volumes:
       - "./config/cds/config-cds.zip:/mnt/config/config-cds.zip"
       - "./config/cds/creds-cds.zip:/mnt/creds/creds-cds.zip"
@@ -176,8 +174,6 @@ services:
     container_name: "koop-lvbb.cds"
     profiles:
       - "default"
-    #extra_hosts:
-    #  - "host.docker.internal: host-gateway"
     ports:
       - "7997-7999:7997-7999"
       - "8000-8002:8000-8002"
@@ -190,7 +186,6 @@ services:
       - "TZ=Europe/Amsterdam"
     volumes:
       - "cds_data:/var/opt/MarkLogic"
-      #- "cds_export:/export/data/MarkLogic"
       - "cds_backups:/export/data/backups:delegated"
       - "/tmp/cds/logs:/var/opt/MarkLogic/Logs:delegated"
       - "/tmp/cds/debug:/data/debug"

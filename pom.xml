@@ -56,6 +56,7 @@
         <micrometer-core.version>1.13.4</micrometer-core.version>
         <springdoc-openapi-starter.version>2.6.0</springdoc-openapi-starter.version>
         <okhttp.version>4.12.0</okhttp.version>
+        <micrometer-registry-prometheus.version>1.13.6</micrometer-registry-prometheus.version>
     </properties>
 
     <dependencyManagement>
@@ -141,6 +142,12 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc-openapi-starter.version}</version>
+            </dependency>
+            <!-- actuator additional metrics -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>${micrometer-registry-prometheus.version}</version>
             </dependency>
             <!-- httpClient#okhttp -->
             <dependency>

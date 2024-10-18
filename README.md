@@ -1,8 +1,16 @@
 # spring_template
 
+## actuator
+(port depending on module)
+* http://localhost:9080/actuator
+* http://localhost:9080/actuator/info
+* http://localhost:9080/actuator/metrics
+* http://localhost:9080/actuator/prometheus
+
 
 ### OpenApi 3.1 & Swagger
 * http://localhost:9080/actuator/swagger-ui
+* http://localhost:9080/actuator/openapi/x-actuator
 
 
 ### Properties encryption

@@ -6,6 +6,7 @@ import nl.spring.template.project.common.spring.tracing.config.TracerClientAbstr
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @EnableConfigurationProperties({OzonProperties.class})
 public class WebClientConfig extends TracerClientAbstractConfig {
-
+    
     @Bean
     @Autowired
     public HttpClient<OzonProperties> ozonClient(

@@ -137,7 +137,7 @@ docker-login:
 
 docker-build: build-template-docker build-opera-docker build-afwijk-docker
 
-docker-up: #docker-build
+docker-up: docker-build
 	@echo "########################################################################################"
 	@echo "## docker compose -f .docker/docker-compose.yml -p myapp up -d --remove-orphans"
 	@echo "########################################################################################"
@@ -150,6 +150,7 @@ docker-down:
 	@echo "########################################################################################"
 	@echo "########################################################################################"
 	@docker compose -f .docker/docker-compose.yml --profile "default" down -v
+	@docker system prune
 
 docker-prune:
 	@echo "########################################################################################"
